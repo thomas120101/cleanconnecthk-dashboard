@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CleanConnectHK — Content Master Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a202c; }
+  header { background: linear-gradient(135deg, #0073E6, #7c3aed); color: white; padding: 24px 32px; display: flex; align-items: center; gap: 16px; }
+  header h1 { font-size: 1.5rem; font-weight: 700; }
+  header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
+  .tabs { display: flex; gap: 0; background: white; border-bottom: 2px solid #e2e8f0; padding: 0 32px; overflow-x: auto; }
+  .tab { padding: 14px 20px; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #718096; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .tab:hover { color: #0073E6; }
+  .tab.active { color: #0073E6; border-bottom-color: #0073E6; }
+  .content { display: none; padding: 32px; max-width: 1400px; margin: 0 auto; }
+  .content.active { display: block; }
+  .section-title { font-size: 1.3rem; font-weight: 700; color: #1a202c; margin-bottom: 8px; }
+  .section-sub { color: #718096; font-size: 0.9rem; margin-bottom: 28px; }
+  .week-label { font-size: 1rem; font-weight: 700; color: #0073E6; margin: 28px 0 16px; padding: 8px 16px; background: #EBF5FF; border-left: 4px solid #0073E6; border-radius: 4px; }
+  .post-card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 24px; overflow: hidden; display: grid; grid-template-columns: 320px 1fr; }
+  .post-image { width: 320px; height: 320px; object-fit: cover; display: block; }
+  .post-body { padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .post-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .badge { font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+  .badge-week { background: #EBF5FF; color: #0073E6; }
+  .badge-pillar { background: #F0FFF4; color: #276749; }
+  .badge-date { background: #FFF5F5; color: #C53030; }
+  .post-title { font-size: 1.1rem; font-weight: 700; color: #1a202c; }
+  .caption-box { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; font-size: 0.85rem; line-height: 1.7; white-space: pre-wrap; max-height: 200px; overflow-y: auto; color: #2d3748; }
+  .copy-btn { align-self: flex-start; background: #0073E6; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.2s; }
+  .copy-btn:hover { background: #005bb5; }
+  .copy-btn.copied { background: #276749; }
+  .brand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
+  .brand-card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
+  .brand-card img { width: 100%; height: 280px; object-fit: cover; }
+  .brand-card-body { padding: 20px; }
+  .brand-card-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: #1a202c; }
+  .group-tier { margin-bottom: 36px; }
+  .tier-header { font-size: 1.1rem; font-weight: 700; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+  .tier-1 { background: #FFF5F5; color: #C53030; border-left: 4px solid #FC8181; }
+  .tier-2 { background: #FFFAF0; color: #C05621; border-left: 4px solid #F6AD55; }
+  .tier-3 { background: #EBF8FF; color: #2C5282; border-left: 4px solid #63B3ED; }
+  .group-card { background: white; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.07); margin-bottom: 16px; padding: 20px; }
+  .group-name { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+  .group-meta { font-size: 0.82rem; color: #718096; margin-bottom: 12px; }
+  .group-link { display: inline-block; background: #1877F2; color: white; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; text-decoration: none; margin-bottom: 14px; }
+  .group-link:hover { background: #166FE5; }
+  .post-example { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-top: 10px; }
+  .post-example-lang { font-size: 0.78rem; font-weight: 700; color: #0073E6; margin-bottom: 6px; text-transform: uppercase; }
+  .post-example-text { font-size: 0.83rem; line-height: 1.65; color: #2d3748; white-space: pre-wrap; }
+  .assets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .asset-card { background: white; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.07); padding: 20px; }
+  .asset-label { font-size: 0.78rem; font-weight: 700; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .asset-value { font-size: 0.95rem; font-weight: 600; color: #1a202c; }
+  .color-swatch { width: 40px; height: 40px; border-radius: 8px; display: inline-block; margin-right: 10px; vertical-align: middle; border: 1px solid #e2e8f0; }
+  .checklist { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 28px; }
+  .checklist h3 { font-size: 1rem; font-weight: 700; color: #0073E6; margin: 20px 0 10px; }
+  .checklist h3:first-child { margin-top: 0; }
+  .check-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0f4f8; font-size: 0.9rem; }
+  .check-item input { margin-top: 3px; accent-color: #0073E6; width: 16px; height: 16px; flex-shrink: 0; }
+  @media (max-width: 768px) {
+    .post-card { grid-template-columns: 1fr; }
+    .post-image { width: 100%; height: 240px; }
+    header { padding: 16px 20px; }
+    .content { padding: 20px 16px; }
+    .tabs { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🏠 CleanConnectHK — Content Master Dashboard</h1>
+    <p>All content, images, captions, and group strategy in one place. Last updated: March 2026</p>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('plan')">📅 4-Week Content Plan</div>
+  <div class="tab" onclick="showTab('brand')">🏷️ Brand Posts</div>
+  <div class="tab" onclick="showTab('groups')">👥 Group Strategy</div>
+  <div class="tab" onclick="showTab('assets')">🎨 Brand Assets</div>
+  <div class="tab" onclick="showTab('checklist')">✅ Posting Checklist</div>
+</div>
+
+<!-- TAB 1: 4-WEEK CONTENT PLAN -->
+<div id="tab-plan" class="content active">
+  <div class="section-title">4-Week Facebook Content Plan</div>
+  <div class="section-sub">12 posts designed to launch the pilot program, build trust, and drive bookings. Click "Copy Caption" to copy the full bilingual text.</div>
+
+  <div class="week-label">📅 Week 1 — Launch Pilot & Build Foundational Trust</div>
+
+  <!-- POST 1 -->
+  <div class="post-card">
+    <img class="post-image" src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/dhsSgBWRAkgsIHtS.jpg" alt="Post 1 - Launch">
+    <div class="post-body">
+      <div class="post-meta">
+        <span class="badge badge-week">Week 1 · Post 1</span>
+        <span class="badge badge-pillar">Trust</span>
+        <span class="badge badge-date">Day 1 (Tue 7–9pm)</span>
+      </div>
+      <div class="post-title">Pilot Program Launch — 20% Off</div>
+      <div class="caption-box" id="cap1">隆重介紹CleanConnectHK試點計劃
+
+厭倦咗唔可靠嘅清潔服務同無盡嘅WhatsApp訊息？CleanConnectHK將會改變呢一切。我哋係一個高端平台，為你對接香港最值得信賴、經過嚴格審核嘅專業清潔人員。
+
+為慶祝我哋啟動，現誠邀首20個家庭參與我哋嘅試點計劃，首次預約即享獨家8折優惠。幫助我哋共創清潔服務嘅未來，親身體驗非凡潔淨。
+---
+Introducing the CleanConnectHK Pilot Program
+
+Tired of unreliable cleaners and endless WhatsApp messages? CleanConnectHK is here to change the game. We are a premium platform connecting you with Hong Kong's most trusted, vetted cleaning professionals.
+
+To celebrate our launch, we're inviting the first 20 households to join our Pilot Program and receive an exclusive 20% discount on their first booking. Help us build the future of cleaning and experience the difference.
+
+Book &amp; Get 20% Off → Link in Bio!
+
+#香港清潔 #專業清潔 #信得過 #網上預約 #家居服務 #CleanConnectHK #HongKongCleaning #PremiumCleaning #TrustedProviders #BookOnline #HKExpat</div>
+      <button class="copy-btn" onclick="copyCaption('cap1', this)">Copy Caption</button>
+    </div>
+  </div>
+
+  <!-- POST 2 -->
+  <div class="post-card">
+    <img class="post-image" src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/WCwtDIusEiqxEhky.jpg" alt="Post 2 - Vetting">
+    <div class="post-body">
+      <div class="post-meta">
+        <span class="badge badge-week">Week 1 · Post 2</span>
+        <span class="badge badge-pillar">Trust</span>
+        <span class="badge badge-date">Day 3 (Thu 7–9pm)</span>
+      </div>
+      <div class="post-title">Our 5-Step Provider Vetting Process</div>
+      <div class="caption-box" id="cap2">我哋嘅5步審核流程大解構
+
+你嘅安心係我哋嘅首要任務。因此，CleanConnectHK平台上嘅每一位服務提供者都必須通過我哋嚴格嘅5步審核流程：
+1️⃣ 身份驗證
+2️⃣ 親身面試及技能測試
+3️⃣ 背景審查
+4️⃣ 推薦人審查
+5️⃣ 平台使用培訓
+
+我哋唔係隨便搵個清潔人員俾你，我哋只為你對接最頂尖嘅專業人士。
+---
+Our 5-Step Vetting Process Explained
+
+Your peace of mind is our priority. That's why every single provider on the CleanConnectHK platform must pass our rigorous 5-step vetting process:
+1️⃣ Identity Verification
+2️⃣ In-Person Interview &amp; Skills Test
+3️⃣ Background Check
+4️⃣ Reference Checks
+5️⃣ Platform Training
+
+We don't just connect you with any cleaner. We connect you with the best.
+
+Learn More → Link in Bio!
+
+#香港清潔 #專業清潔 #信得過 #背景審查 #CleanConnectHK #HongKongCleaning #TrustedProviders #VettedPros</div>
+      <button class="copy-btn" onclick="copyCaption('cap2', this)">Copy Caption</button>
+    </div>
+  </div>
+
+  <!-- POST 3 -->
+  <div class="post-card">
+    <img class="post-image" src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/UcCjPhYNWBkrCibx.jpg" alt="Post 3 - Booking">
+    <div class="post-body">
+      <div class="post-meta">
+        <span class="badge badge-week">Week 1 · Post 3</span>
+        <span class="badge badge-pillar">Convenience</span>
+        <span class="badge badge-date">Day 5 (Sat 10am–12pm)</span>
+      </div>
+      <div class="post-title">Book in 2 Minutes</div>
+      <div class="caption-box" id="cap3">如何喺2分鐘內預約信得過嘅清潔服務
+
+無需再打電話，告別來回溝通。體驗流暢、2分鐘內完成嘅預約流程。
+1. 選擇服務同單位面積。
+2. 揀選日期同時間。
+3. 安全網上支付。
+
+呢個就係現代化嘅清潔服務，CleanConnectHK嘅方式。
+---
+How to Book a Trusted Cleaner in Under 2 Minutes
+
+No more phone calls. No more back-and-forth. Just a seamless, 2-minute booking process.
+1. Select your service &amp; home size.
+2. Choose a date &amp; time.
+3. Pay securely online.
+
+It's cleaning, modernized. It's the CleanConnectHK way.
+
+Try Booking → Link in Bio!
+
+#網上預約 #家居服務 #方便快捷 #香港生活 #CleanConnectHK #BookOnline #Convenience #HKHome</div>
+      <button class="copy-btn" onclick="copyCaption('cap3', this)">Copy Caption</button>
+    </div>
+  </div>
+
+  <div class="week-label">📅 Week 2 — Showcase Quality & Drive Urgency</div>
+
+  <!-- POST 4 -->
+  <div class="post-card">
+    <img class="post-image" src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/mftYLszOWASVNgUQ.jpg" alt="Post 4 - Before After">
+    <div class="post-body">
+      <div class="post-meta">
+        <span class="badge badge-week">Week 2 · Post 4</span>
+        <span class="badge badge-pillar">Quality</span>
+        <span class="badge badge-date">Day 8 (Tue 7–9pm)</span>
+      </div>
+      <div class="post-title">Before &amp; After Transformation</div>
+      <div class="caption-box" id="cap4">前後對比：我哋首個試點計劃嘅驚人成果
+
+有圖有真相。✨ 呢個就係我哋第一個試點計劃預約嘅成果——由混亂到閃亮嘅徹底轉變。呢個就係你喺CleanConnectHK可以期待嘅質量標準。
+
+準備好迎接你嘅大變身未？
+---
+Before &amp; After: Our First Pilot Program Transformation
+
+The pictures speak for themselves. ✨ This is the result of our first Pilot Program booking — a complete transformation from cluttered to sparkling. This is the standard of quality you can expect from every CleanConnectHK provider.
+
+Ready for your own before-and-after?
+
+Book Your Transformation → Link in Bio!
+
+#清潔服務 #家居清潔 #深層清潔 #前後對比 #CleanConnectHK #BeforeAndAfter #CleaningService #HKExpat</div>
+      <button class="copy-btn" onclick="copyCaption('cap4', this)">Copy Caption</button>
+    </div>
+  </div>
+
+  <!-- POST 5 -->
+  <div class="post-card">
+    <img class="post-image" src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/tiHLdRcPcgfutNCh.jpg" alt="Post 5 - Provider">
+    <div class="post-body">
+      <div class="post-meta">
+        <span class="badge badge-week">Week 2 · Post 5</span>
+        <span class="badge badge-pillar">Trust</span>
+        <span class="badge badge-date">Day 10 (Thu 7–9pm)</span>
+      </div>
+      <div class="post-title">Meet a Provider</div>
+      <div class="caption-box" id="cap5">認識你嘅服務提供者：介紹我哋首批專業人員
+
+見一見May啦，佢係首批加入CleanConnectHK平台嘅專業人員之一！擁有超過10年酒店房務經驗，May為每項工作帶嚟專家級嘅細節觸覺。佢相信一個乾淨嘅家就係一個快樂嘅家。
+
+我哋所有嘅服務提供者都經驗豐富、經過審核，並準備好提供5星級服務。
+---
+Meet Your Provider: Featuring one of our first vetted professionals
+
+Meet May, one of the first professionals to join the CleanConnectHK platform! With over 10 years of experience in hotel housekeeping, May brings an expert eye for detail to every job. She believes a clean home is a happy home.
+
+All our providers are experienced, vetted, and ready to provide a 5-star service.
+
+Meet Our Pros → Link in Bio!
+
+#專業團隊 #信得過 #清潔專家 #香港 #CleanConnectHK #MeetTheTeam #VettedPros #HKProfessional</div>
+      <button class="copy-btn" onclick="copyCaption('cap5', this)">Copy Caption</button>
+    </div>
+  </div>
+
+  <!-- POST 6 -->
+  <div class="post-card">
+    <img class="post-image" src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/lPNdskHKGyMvwabr.jpg" alt="Post 6 - Dashboard">
+    <div class="post-body">
+      <div class="post-meta">
+        <span class="badge badge-week">Week 2 · Post 6</span>
+        <span class="badge badge-pillar">Convenience</span>
+        <span class="badge badge-date">Day 12 (Sat 10am–12pm)</span>
+      </div>
+      <div class="post-title">Manage Bookings Anytime</div>
+      <div class="caption-box" id="cap6">隨時隨地，網上管理你嘅預約
+
+需要重新安排時間？想為你嘅服務提供者留低備註？你嘅CleanConnectHK主控板俾你全權控制你嘅預約，全年無休。管理你嘅清潔時間表，就好似管理你嘅行事曆一樣咁簡單。
+---
+Manage Your Bookings Online, Anytime
+
+Need to reschedule? Want to add a note for your provider? Your CleanConnectHK dashboard gives you full control over your bookings, 24/7. Manage your cleaning schedule as easily as you manage your calendar.
+
+Learn More → Link in Bio!
+
+#網上管理 #方便 #科技生活 #家居服務 #CleanConnectHK #OnlineBooking #247Service #HKTech</div>
+      <button class="copy-btn" onclick="copyCaption('cap6', this)">Copy Caption</button>
+    </div>
+  </div>
+
+  <div class="week-label">📅 Week 3 — Reinforce Lifestyle & Social Proof</div>
+
+  <!-- POST 7 -->
+  <div class="post-card">
+    <img class="post-image" src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/sgPsAwBtQlWrVQnl.jpg" alt="Post 7 - Lifestyle">
+    <div class="post-body">
+      <div class="post-meta">
+        <span class="badge badge-week">Week 3 · Post 7</span>
+        <span class="badge badge-pillar">Lifestyle</span>
+        <span class="badge badge-date">Day 15 (Tue 7–9pm)</span>
+      </div>
+      <div class="post-title">Stop Cleaning. Start Living.</div>
+      <div class="caption-box" id="cap7">今個週末多出嚟嘅3個鐘，你打算點用？
+
+清潔係你永遠追唔返嘅3個鐘。你會點樣用呢啲時間？去行山？同朋友食brunch？同屋企人睇場戲？
+
+停止清潔，開始生活。其他嘅，交俾我哋。
+---
+What Will You Do With Your Extra 3 Hours This Weekend?
+
+Cleaning is 3 hours you'll never get back. What could you do instead? A hike? Brunch with friends? A movie with the family?
+
+Stop cleaning. Start living. We'll handle the rest.
+
+Reclaim Your Weekend → Link in Bio!
+
+#生活品味 #週末好去處 #騰出時間 #香港生活 #CleanConnectHK #Lifestyle #ReclaimYourTime #HKWeekend</div>
+      <button class="copy-btn" onclick="copyCaption('cap7', this)">Copy Caption</button>
+    </div>
+  </div>
+
+  <!-- POST 8 -->
+  <div class="post-card">
+    <img class="post-image" src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/OcaQnkkYZvGhhhXa.jpg" alt="Post 8 - Review">
+    <div class="post-body">
+      <div class="post-meta">
+        <span class="badge badge-week">Week 3 · Post 8</span>
+        <span class="badge badge-pillar">Quality</span>
+        <span class="badge badge-date">Day 17 (Thu 7–9pm)</span>
+      </div>
+      <div class="post-title">Our First 5-Star Review</div>
+      <div class="caption-box" id="cap8">我哋收到第一個5星好評啦！
+
+「呢個就係我喺香港一直期待嘅服務！預約過程超級順暢，師傅好專業，我間屋乾淨到發光。每一蚊都物超所值。」 - Sarah L., 半山 ⭐⭐⭐⭐⭐
+
+加入我哋不斷增長嘅滿意客戶名單啦。
+---
+Our First 5-Star Review is In!
+
+"This is what I've been waiting for in Hong Kong! The booking was incredibly smooth, the provider was professional, and my apartment is spotless. Worth every dollar." - Sarah L., Mid-Levels ⭐⭐⭐⭐⭐
+
+Join our growing list of happy customers.
+
+Book a 5-Star Clean → Link in Bio!
+
+#五星好評 #客戶推薦 #信譽保證 #清潔服務 #CleanConnectHK #5StarReview #Testimonial #CustomerLove</div>
+      <button class="copy-btn" onclick="copyCaption('cap8', this)">Copy Caption</button>
+    </div>
+  </div>
+
+  <!-- POST 9 -->
+  <div class="post-card">
+    <img class="post-image" src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/mfDIwscfVKYTSXQI.jpg" alt="Post 9 - Guarantee">
+    <div class="post-body">
+      <div class="post-meta">
+        <span class="badge badge-week">Week 3 · Post 9</span>
+        <span class="badge badge-pillar">Trust</span>
+        <span class="badge badge-date">Day 19 (Sat 10am–12pm)</span>
+      </div>
+      <div class="post-title">Satisfaction Guaranteed</div>
+      <div class="caption-box" id="cap9">我哋嘅滿意保證詳情
+
+我哋對品質有絕對堅持。如果你對清潔效果未完全滿意，請喺24小時內話我哋知，我哋會安排另一位服務提供者免費為你重新清潔相關範圍。呢個係我哋對你嘅承諾。
+---
+Our Satisfaction Guarantee Explained
+
+We stand by our quality. If you're not completely satisfied with your clean, let us know within 24 hours and we will send another provider to re-clean the specific areas for free. It's our promise to you.
+
+Book with Confidence → Link in Bio!
+
+#滿意保證 #信心之選 #品質服務 #客戶至上 #CleanConnectHK #SatisfactionGuaranteed #BookWithConfidence #QualityService</div>
+      <button class="copy-btn" onclick="copyCaption('cap9', this)">Copy Caption</button>
+    </div>
+  </div>
+
+  <div class="week-label">📅 Week 4 — Drive Final Conversions & Look Ahead</div>
+
+  <!-- POST 10 -->
+  <div class="post-card">
+    <img class="post-image" src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/ROTqeBfbMdUdVguZ.jpg" alt="Post 10 - Comparison">
+    <div class="post-body">
+      <div class="post-meta">
+        <span class="badge badge-week">Week 4 · Post 10</span>
+        <span class="badge badge-pillar">Convenience</span>
+        <span class="badge badge-date">Day 22 (Tue 7–9pm)</span>
+      </div>
+      <div class="post-title">Which Service is Right for You?</div>
+      <div class="caption-box" id="cap10">深層清潔 vs 日常清潔：邊種服務適合你？
+
+唔肯定你需要邊種服務？
+
+日常清潔：最適合每週或每兩週進行，保持家居清爽。
+深層清潔：為一段時間冇專業清潔過嘅家居提供徹底、由上而下嘅清潔。
+
+喺我哋網站揀選最適合你需要嘅服務啦。
+---
+Deep Clean vs. Maintenance: Which Service is Right for You?
+
+Not sure which service you need?
+
+Maintenance Clean: Perfect for weekly or bi-weekly upkeep to keep your home fresh.
+Deep Clean: An intensive, top-to-bottom clean for homes that haven't been professionally cleaned in a while.
+
+Choose the right service for your needs on our website.
+
+Choose Your Clean → Link in Bio!
+
+#服務比較 #日常清潔 #深層清潔 #家居小貼士 #CleanConnectHK #ServiceComparison #DeepClean #MaintenanceClean</div>
+      <button class="copy-btn" onclick="copyCaption('cap10', this)">Copy Caption</button>
+    </div>
+  </div>
+
+  <!-- POST 11 -->
+  <div class="post-card">
+    <img class="post-image" src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/QXCPPFpJQXeKCNFl.jpg" alt="Post 11 - Tools">
+    <div class="post-body">
+      <div class="post-meta">
+        <span class="badge badge-week">Week 4 · Post 11</span>
+        <span class="badge badge-pillar">Quality</span>
+        <span class="badge badge-date">Day 24 (Thu 7–9pm)</span>
+      </div>
+      <div class="post-title">Professional Grade Tools</div>
+      <div class="caption-box" id="cap11">專業級清潔工具大公開
+
+一次完美嘅清潔需要完美嘅工具。我哋嘅服務提供者使用專業級、環保嘅產品，確保每次都有一個完美、衛生嘅效果。冇偷工減料，只有優質用品帶嚟嘅優質成果。
+---
+A Look Inside Our Providers' Professional Cleaning Kits
+
+A great clean requires great tools. Our providers use professional-grade, eco-friendly products to ensure a perfect, hygienic finish every time. No cut corners, just quality supplies for a quality result.
+
+See the Difference → Link in Bio!
+
+#專業工具 #環保清潔 #品質保證 #一絲不苟 #CleanConnectHK #ProfessionalGrade #EcoFriendly #QualityMatters</div>
+      <button class="copy-btn" onclick="copyCaption('cap11', this)">Copy Caption</button>
+    </div>
+  </div>
+
+  <!-- POST 12 -->
+  <div class="post-card">
+    <img class="post-image" src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/dNjcHqnZiOpZolHu.jpg" alt="Post 12 - Urgency">
+    <div class="post-body">
+      <div class="post-meta">
+        <span class="badge badge-week">Week 4 · Post 12</span>
+        <span class="badge badge-pillar">Lifestyle</span>
+        <span class="badge badge-date">Day 26 (Sat 10am–12pm)</span>
+      </div>
+      <div class="post-title">Last Chance — Only 5 Spots Left!</div>
+      <div class="caption-box" id="cap12">試點計劃即將額滿！8折優惠最後召集
+
+你嘅週末喺度呼喚你！唔好再花時間擦地板啦。呢個係你加入我哋試點計劃，首次尊貴清潔服務即享8折優惠嘅最後機會。名額有限，立即預約啦！
+---
+The Pilot Program is Almost Full! Last Chance for 20% Off
+
+Your weekend is calling! Don't spend it scrubbing floors. This is your last chance to join our Pilot Program and get 20% off your first premium clean. Book now before all spots are gone!
+
+Book Now → Link in Bio!
+
+#最後機會 #優惠倒數 #立即預約 #清潔服務 #CleanConnectHK #LastChance #Discount #BookNow</div>
+      <button class="copy-btn" onclick="copyCaption('cap12', this)">Copy Caption</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: BRAND POSTS -->
+<div id="tab-brand" class="content">
+  <div class="section-title">Brand Voice, Direction & Vision Posts</div>
+  <div class="section-sub">3 brand-building posts + 1 corrected bilingual comparison post. Spread these across Weeks 2–4 to reinforce your identity.</div>
+  <div class="brand-grid">
+
+    <div class="brand-card">
+      <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/KYPGAEDFnOeTiuih.jpg" alt="Brand Voice">
+      <div class="brand-card-body">
+        <div class="brand-card-title">Brand Voice — More Than Clean. It's Peace of Mind.</div>
+        <div class="caption-box" id="capB1" style="max-height:160px">At CleanConnectHK, our voice is built on three promises: Trust, Convenience, and Quality.
+
+Trust: Every provider is background-checked and interviewed because we believe you deserve to know who is in your home.
+Convenience: Book in 2 minutes, manage everything online. No calls, no hassle.
+Quality: We guarantee a professional, 5-star clean every time.
+
+This isn't just cleaning. This is the new standard of home services in Hong Kong.
+---
+在CleanConnectHK，我們的品牌建立在三個承諾之上：信任、便捷和品質。
+
+信任：每位服務提供者都經過背景審查和面試，因為我們相信您有權知道誰在您的家中。
+便捷：兩分鐘內完成預約，網上管理一切。無需電話，沒有煩惱。
+品質：我們保證每次都提供專業的五星級清潔服務。
+
+這不僅僅是清潔。這是香港家居服務的新標準。</div>
+        <button class="copy-btn" onclick="copyCaption('capB1', this)" style="margin-top:12px">Copy Caption</button>
+      </div>
+    </div>
+
+    <div class="brand-card">
+      <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/bdjnQxRRePndOeGk.jpg" alt="Brand Direction">
+      <div class="brand-card-body">
+        <div class="brand-card-title">Brand Direction — The Uber of Cleaning is Here.</div>
+        <div class="caption-box" id="capB2" style="max-height:160px">Our direction is simple: to be the Uber of cleaning for Hong Kong.
+
+For too long, finding a reliable cleaner has been based on luck and word-of-mouth. We are changing that by building a platform that brings technology, trust, and transparency to the home services industry.
+
+Instant booking, vetted providers, seamless payments, and quality you can count on. This is the future of home cleaning.
+---
+我們的方向很簡單：成為香港的清潔界Uber。
+
+長期以來，尋找可靠的清潔服務一直依賴運氣和口碑。我們正在改變這一點，建立一個為家居服務行業帶來技術、信任和透明度的平台。
+
+即時預約、經審查的服務提供者、無縫支付以及值得信賴的品質。這就是家居清潔的未來。</div>
+        <button class="copy-btn" onclick="copyCaption('capB2', this)" style="margin-top:12px">Copy Caption</button>
+      </div>
+    </div>
+
+    <div class="brand-card">
+      <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/hoDXYmVIgmRWxhGH.jpg" alt="Future Vision">
+      <div class="brand-card-body">
+        <div class="brand-card-title">Future Vision — Your Home, Managed.</div>
+        <div class="caption-box" id="capB3" style="max-height:160px">Our vision goes beyond cleaning. We are building the single, trusted platform for all your home service needs.
+
+Imagine a world where you can book a vetted cleaner, a reliable handyman, or a professional mover with the same 2-minute convenience. One app, one standard of quality, one trusted source for your home.
+
+Cleaning is just the beginning.
+---
+我們的願景超越了清潔。我們正在為您所有的家居服務需求，建立一個單一、值得信賴的平台。
+
+想像一下，您可以用同樣的兩分鐘便利，預約到經審查的清潔工、可靠的雜務工或專業的搬運工。一個應用程式，一個品質標準，一個您家的信賴來源。
+
+清潔，僅僅是個開始。</div>
+        <button class="copy-btn" onclick="copyCaption('capB3', this)" style="margin-top:12px">Copy Caption</button>
+      </div>
+    </div>
+
+    <div class="brand-card">
+      <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663339352422/iUHsgIFeDtdEggUw.jpg" alt="Comparison">
+      <div class="brand-card-body">
+        <div class="brand-card-title">Which Service is Right for You? (Bilingual Version)</div>
+        <div class="caption-box" id="capB4" style="max-height:160px">不確定您需要哪種清潔服務？這是一個簡單的指南：
+
+日常清潔 (Maintenance Clean)：非常適合定期（每週或每兩週）進行，以保持您的家居清新整潔。我們涵蓋所有基本清潔。
+
+深層清潔 (Deep Clean)：全面大掃除。我們處理您廚房的油漬、浴室的積垢以及其間的一切。非常適合首次清潔或季節性大掃除。
+
+在我們的網站上選擇您的服務，兩分鐘內完成預約！
+---
+Not sure which clean you need? Here's a simple guide:
+
+Maintenance Clean (日常清潔): Perfect for regular upkeep (weekly or bi-weekly) to keep your home fresh and tidy.
+
+Deep Clean (深層清潔): The full reset. We tackle the grime in your kitchen, the build-up in your bathroom, and everything in between.
+
+Choose your service and book in 2 minutes on our website!</div>
+        <button class="copy-btn" onclick="copyCaption('capB4', this)" style="margin-top:12px">Copy Caption</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TAB 3: GROUP STRATEGY -->
+<div id="tab-groups" class="content">
+  <div class="section-title">Facebook Group Marketing Strategy</div>
+  <div class="section-sub">9 high-value groups across 3 tiers. Click the Facebook link to open each group, then use the post example below it.</div>
+
+  <div class="group-tier">
+    <div class="tier-header tier-1">🔴 Tier 1 — The "Pain-Point" Audience (Highest Conversion Potential)</div>
+
+    <div class="group-card">
+      <div class="group-name">聘請工人姐姐關注組</div>
+      <div class="group-meta">~250,000 members · People frustrated with domestic helper issues</div>
+      <a class="group-link" href="https://www.facebook.com/groups/1124835404585835/" target="_blank">Open Group on Facebook</a>
+      <div class="post-example">
+        <div class="post-example-lang">Cantonese Post</div>
+        <div class="post-example-text">厭倦了工人姐姐的煩惱？專業家居清潔，按你需要，隨時預約。
+
+見到好多谷友分享請工人姐姐的壓力同煩惱。如果可以有酒店級的清潔服務，但又唔洗長工約、唔洗中介費、無壓力，你覺得點？
+
+CleanConnectHK 是一個全新的平台，為你配對經過嚴格審查的本地專業清潔員。2分鐘網上預約，輕鬆管理，享受一塵不染的家。
+
+為慶祝我哋嘅試業計劃，首次預約即享8折優惠！Follow我哋嘅專頁 @CleanConnectHK，並在下面留言 'CLEAN20'，即可獲得你的優惠碼！</div>
+      </div>
+    </div>
+
+    <div class="group-card">
+      <div class="group-name">香港外傭僱主開心share</div>
+      <div class="group-meta">~188,000 members · Domestic helper employers sharing experiences</div>
+      <a class="group-link" href="https://www.facebook.com/groups/happyemployers/" target="_blank">Open Group on Facebook</a>
+      <div class="post-example">
+        <div class="post-example-lang">Cantonese Post</div>
+        <div class="post-example-text">想要專業清潔，但唔想再煩惱工人姐姐嘅問題？
+
+CleanConnectHK 提供按需預約嘅專業清潔服務。唔需要長工合約，唔需要中介費，只需要2分鐘網上預約。
+
+每位清潔員都經過嚴格審查同背景調查，確保你嘅家居安全。
+
+試業優惠：首次預約8折！Follow @CleanConnectHK 留言 'CLEAN20' 即享優惠。</div>
+      </div>
+    </div>
+
+    <div class="group-card">
+      <div class="group-name">香港無工人家庭</div>
+      <div class="group-meta">~15,000 members · Families who have chosen not to have a live-in helper</div>
+      <a class="group-link" href="https://www.facebook.com/groups/323891728284088/" target="_blank">Open Group on Facebook</a>
+      <div class="post-example">
+        <div class="post-example-lang">Cantonese Post</div>
+        <div class="post-example-text">無工人家庭的最佳拍檔 — 按需預約的專業清潔服務！
+
+選擇無工人生活，係為咗更多自由同私人空間。但係大掃除嘅時候，你需要幫手！
+
+CleanConnectHK 專為無工人家庭而設。需要嘅時候先預約，唔需要就唔使俾錢。靈活、專業、值得信賴。
+
+試業優惠：首次預約8折！Follow @CleanConnectHK 留言 'CLEAN20'。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="group-tier">
+    <div class="tier-header tier-2">🟠 Tier 2 — The "Life Event" Audience (High Intent)</div>
+
+    <div class="group-card">
+      <div class="group-name">香港裝修黑店、中伏經驗</div>
+      <div class="group-meta">~110,000 members · Post-renovation homeowners</div>
+      <a class="group-link" href="https://www.facebook.com/groups/292892988067558/" target="_blank">Open Group on Facebook</a>
+      <div class="post-example">
+        <div class="post-example-lang">Cantonese Post</div>
+        <div class="post-example-text">裝修完工？唔好俾最後一步嘅清潔搞到頭都大。
+
+裝修過程已經夠晒心力交瘁，最後一步嘅清潔，交俾我哋啦！專業嘅裝修後清潔，係你搬入新屋前不可或缺的一環。
+
+我哋嘅入伙/交吉清潔服務，專為裝修後而設。由深層清潔櫥櫃到清除油漆漬，我哋會確保你嘅新居一塵不染，隨時可以安心入住。
+
+2分鐘網上預約。Follow @CleanConnectHK 並留言 'CLEAN20'，首次預約即享8折優惠。</div>
+      </div>
+    </div>
+
+    <div class="group-card">
+      <div class="group-name">最新香港搬屋資訊群組</div>
+      <div class="group-meta">~4,100 members · People actively moving home</div>
+      <a class="group-link" href="https://www.facebook.com/groups/633434310658860/" target="_blank">Open Group on Facebook</a>
+      <div class="post-example">
+        <div class="post-example-lang">Cantonese Post</div>
+        <div class="post-example-text">搬屋前後，專業清潔一步到位！
+
+搬屋係人生大事，清潔係最後一關。無論係交吉清潔舊居，定係入伙清潔新居，CleanConnectHK 都可以幫到你。
+
+✅ 2分鐘網上預約
+✅ 即時報價，無隱藏收費
+✅ 經審查嘅專業清潔員
+✅ 首次預約8折優惠
+
+留言 'CLEAN20' 或 Follow @CleanConnectHK 獲取優惠碼！</div>
+      </div>
+    </div>
+
+    <div class="group-card">
+      <div class="group-name">香港地產 租屋/買樓/放盤</div>
+      <div class="group-meta">~150,000 members · Renters and homeowners in transition</div>
+      <a class="group-link" href="https://www.facebook.com/groups/1438893569746589/" target="_blank">Open Group on Facebook</a>
+      <div class="post-example">
+        <div class="post-example-lang">Cantonese Post</div>
+        <div class="post-example-text">租約完結/新居入伙？專業清潔服務，幫你順利交接！
+
+搬出舊居要交吉清潔？搬入新居要入伙大掃除？
+
+CleanConnectHK 嘅入伙/交吉清潔服務，包括全屋深層清潔、廚櫃內部、浴室除垢等，確保你順利完成租約交接或新居入住。
+
+即時報價，2分鐘預約。首次預約8折 — Follow @CleanConnectHK 留言 'CLEAN20'！</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="group-tier">
+    <div class="tier-header tier-3">🔵 Tier 3 — The "Affluent & Busy" Audience</div>
+
+    <div class="group-card">
+      <div class="group-name">Hong Kong Expats</div>
+      <div class="group-meta">~20,000 members · English-speaking expats in Hong Kong</div>
+      <a class="group-link" href="https://www.facebook.com/groups/hkexpats/" target="_blank">Open Group on Facebook</a>
+      <div class="post-example">
+        <div class="post-example-lang">English Post</div>
+        <div class="post-example-text">The easiest way to book a professional, reliable cleaner in Hong Kong.
+
+Finding a trustworthy cleaner you can book online without endless back-and-forth is tough. CleanConnectHK fixes that.
+
+We're a new platform that connects you with vetted, background-checked local cleaners. See instant pricing, book your slot in 2 minutes, and manage everything from your dashboard. It's the Uber of cleaning.
+
+We're currently running a pilot program with 20% off your first service. Follow our page @CleanConnectHK and comment 'CLEAN20' below to get your exclusive discount code!</div>
+      </div>
+    </div>
+
+    <div class="group-card">
+      <div class="group-name">Hong Kong Mums</div>
+      <div class="group-meta">~45,000 members · Mothers and families in Hong Kong</div>
+      <a class="group-link" href="https://www.facebook.com/groups/hongkongmums/" target="_blank">Open Group on Facebook</a>
+      <div class="post-example">
+        <div class="post-example-lang">Bilingual Post</div>
+        <div class="post-example-text">媽媽們，把週末還給自己和家人！
+
+照顧孩子已經夠忙了，家居清潔交俾我哋啦！CleanConnectHK 為香港媽媽提供專業、可靠的按需清潔服務。
+
+2分鐘預約，放心把家交給我們經過審查的專業清潔員，你就可以專心陪伴家人。
+
+---
+Mums, give your weekends back to yourself and your family!
+
+CleanConnectHK connects you with vetted, professional cleaners. Book in 2 minutes and spend your time on what matters most.
+
+Pilot Program: 20% off your first booking! Follow @CleanConnectHK and comment 'CLEAN20'.</div>
+      </div>
+    </div>
+
+    <div class="group-card">
+      <div class="group-name">Taikoo Shing Residents</div>
+      <div class="group-meta">~15,000 members · Residents of Taikoo Shing estate</div>
+      <a class="group-link" href="https://www.facebook.com/groups/141223352579361/" target="_blank">Open Group on Facebook</a>
+      <div class="post-example">
+        <div class="post-example-lang">Bilingual Post (Hyper-Local)</div>
+        <div class="post-example-text">太古城街坊注意！專業家居清潔服務，現已接受預約 🏠
+
+我哋係CleanConnectHK，一個全新嘅專業清潔平台，而家接受太古城區嘅預約！
+
+✅ 經審查嘅本地專業清潔員
+✅ 即時網上報價
+✅ 2分鐘完成預約
+✅ 試業優惠：首次預約8折
+
+---
+Attention Taikoo Shing residents! Professional home cleaning, now available in your area.
+
+CleanConnectHK is a new platform connecting you with vetted local cleaners. Instant quotes, 2-minute booking.
+
+Pilot offer: 20% off your first booking! Follow @CleanConnectHK and comment 'CLEAN20'.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: BRAND ASSETS -->
+<div id="tab-assets" class="content">
+  <div class="section-title">Brand Assets Reference</div>
+  <div class="section-sub">Quick reference for all brand elements. Use these consistently across all content.</div>
+  <div class="assets-grid">
+    <div class="asset-card">
+      <div class="asset-label">Primary Brand Colour</div>
+      <span class="color-swatch" style="background:#0073E6"></span>
+      <span class="asset-value">#0073E6 — Brand Blue</span>
+    </div>
+    <div class="asset-card">
+      <div class="asset-label">Secondary Brand Colour</div>
+      <span class="color-swatch" style="background:#7c3aed"></span>
+      <span class="asset-value">#7c3aed — Brand Purple</span>
+    </div>
+    <div class="asset-card">
+      <div class="asset-label">Background Colour</div>
+      <span class="color-swatch" style="background:#ffffff; border:1px solid #ccc"></span>
+      <span class="asset-value">#FFFFFF — Pure White</span>
+    </div>
+    <div class="asset-card">
+      <div class="asset-label">Text Colour</div>
+      <span class="color-swatch" style="background:#1a202c"></span>
+      <span class="asset-value">#1a202c — Dark Navy</span>
+    </div>
+    <div class="asset-card">
+      <div class="asset-label">Brand Name</div>
+      <div class="asset-value">CleanConnectHK</div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-label">Logo Description</div>
+      <div class="asset-value" style="font-size:0.85rem">House icon with blue-to-purple gradient, purple door, sparkle star, water wave base. Text: "CleanConnectHK" in dark blue.</div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-label">Core Positioning Statement</div>
+      <div class="asset-value" style="font-size:0.85rem">"Professional home cleaning, on your terms. No live-in commitment. Just results." / 「專業家居清潔，按你需要。無需長工，只要效果。」</div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-label">Brand Voice Pillars</div>
+      <div class="asset-value" style="font-size:0.85rem">Trust · Convenience · Quality</div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-label">Pilot Program Discount Code</div>
+      <div class="asset-value" style="font-size:1.2rem; color:#0073E6; letter-spacing:0.1em">CLEAN20</div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-label">Website</div>
+      <div class="asset-value"><a href="https://cleanconnecthk.com" target="_blank" style="color:#0073E6">cleanconnecthk.com</a></div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-label">Facebook Page</div>
+      <div class="asset-value"><a href="https://www.facebook.com/cleanconnecthk" target="_blank" style="color:#0073E6">@CleanConnectHK</a></div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-label">Booking Link (Bio)</div>
+      <div class="asset-value" style="font-size:0.85rem"><a href="https://cleanconnecthk.com/book-service" target="_blank" style="color:#0073E6">cleanconnecthk.com/book-service</a></div>
+    </div>
+    <div class="asset-card" style="grid-column: 1/-1">
+      <div class="asset-label">Pricing Reference (Current)</div>
+      <div style="overflow-x:auto; margin-top:8px">
+        <table style="width:100%; border-collapse:collapse; font-size:0.85rem">
+          <tr style="background:#EBF5FF">
+            <th style="padding:8px; text-align:left; border:1px solid #e2e8f0">Service</th>
+            <th style="padding:8px; text-align:left; border:1px solid #e2e8f0">Rate</th>
+            <th style="padding:8px; text-align:left; border:1px solid #e2e8f0">Minimum</th>
+          </tr>
+          <tr>
+            <td style="padding:8px; border:1px solid #e2e8f0">Maintenance Clean</td>
+            <td style="padding:8px; border:1px solid #e2e8f0">HK$1.50/sq ft</td>
+            <td style="padding:8px; border:1px solid #e2e8f0">HK$600</td>
+          </tr>
+          <tr style="background:#f7fafc">
+            <td style="padding:8px; border:1px solid #e2e8f0">Deep Clean</td>
+            <td style="padding:8px; border:1px solid #e2e8f0">HK$2.20/sq ft</td>
+            <td style="padding:8px; border:1px solid #e2e8f0">HK$900 (updated)</td>
+          </tr>
+          <tr>
+            <td style="padding:8px; border:1px solid #e2e8f0">Move-in/Move-out</td>
+            <td style="padding:8px; border:1px solid #e2e8f0">HK$3.00/sq ft</td>
+            <td style="padding:8px; border:1px solid #e2e8f0">HK$1,300 (updated)</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: POSTING CHECKLIST -->
+<div id="tab-checklist" class="content">
+  <div class="section-title">Posting Checklist</div>
+  <div class="section-sub">Follow this checklist every time you post to ensure consistency and quality.</div>
+  <div class="checklist">
+    <h3>Before You Post</h3>
+    <div class="check-item"><input type="checkbox"> Choose the correct image from the 4-Week Content Plan or Brand Posts tab</div>
+    <div class="check-item"><input type="checkbox"> Copy the bilingual caption using the "Copy Caption" button</div>
+    <div class="check-item"><input type="checkbox"> Confirm the Facebook page bio link points to: cleanconnecthk.com/book-service</div>
+    <div class="check-item"><input type="checkbox"> Check that the post is scheduled for the right day and time (Tue/Thu 7–9pm or Sat 10am–12pm)</div>
+
+    <h3>For Page Posts (Your Own Page)</h3>
+    <div class="check-item"><input type="checkbox"> Upload the image to Meta Business Suite</div>
+    <div class="check-item"><input type="checkbox"> Paste the full bilingual caption</div>
+    <div class="check-item"><input type="checkbox"> Add the booking link in the caption or as a button</div>
+    <div class="check-item"><input type="checkbox"> Schedule the post (do not post manually — schedule in advance)</div>
+
+    <h3>For Group Posts</h3>
+    <div class="check-item"><input type="checkbox"> Open the group link from the Group Strategy tab</div>
+    <div class="check-item"><input type="checkbox"> Use the tailored post example for that specific group</div>
+    <div class="check-item"><input type="checkbox"> Include one of your best images with the post</div>
+    <div class="check-item"><input type="checkbox"> Include the CLEAN20 discount code offer</div>
+    <div class="check-item"><input type="checkbox"> Ask people to comment 'CLEAN20' and follow the page</div>
+    <div class="check-item"><input type="checkbox"> Check group rules — some groups do not allow promotional posts</div>
+
+    <h3>After You Post</h3>
+    <div class="check-item"><input type="checkbox"> Reply to all comments within 2 hours</div>
+    <div class="check-item"><input type="checkbox"> Send the discount code via DM to anyone who comments 'CLEAN20'</div>
+    <div class="check-item"><input type="checkbox"> Note the post reach and engagement in your tracker</div>
+    <div class="check-item"><input type="checkbox"> Share the page post to your personal profile for extra reach</div>
+  </div>
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function copyCaption(id, btn) {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy Caption';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+</script>
+</body>
+</html>
